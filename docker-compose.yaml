@@ -1,0 +1,63 @@
+version: '3'
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    ports:
+      - 81:80
+    volumes:
+      - static:/staticroot
+    depends_on:
+      - django
+      - django_daphne
+
+  django:
+    build:
+      context: .
+      dockerfile: docker/django/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - static:/usr/src/app/keyua_asgi_app/staticroot
+      - mediaroot:/usr/src/app/keyua_asgi_app/media
+
+  django_daphne:
+    build:
+      context: .
+      dockerfile: docker/daphne/Dockerfile
+    command: daphne -b 0.0.0.0 -p 8001 keyua_asgi_app.asgi:application
+    expose:
+      - 8001
+      - 587
+    volumes:
+      - static:/usr/src/app/keyua_asgi_app/staticroot
+      - mediaroot:/usr/src/app/keyua_asgi_app/media
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  db:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: keyua_asgi_db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+
+  redis:
+    image: redis:alpine
+
+
+
+volumes:
+  static:
+  mediaroot:
+  db_data:
