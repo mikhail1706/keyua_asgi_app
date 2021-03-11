@@ -1,4 +1,4 @@
-Tasks for KeyUA
+KeyUA ASGI Application
 
 ## Production 
 - set production configuration in .env file
